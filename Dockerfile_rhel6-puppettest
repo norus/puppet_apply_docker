@@ -1,0 +1,21 @@
+FROM rhel6/puppetbase
+MAINTAINER Ruslan Valiyev <valiyev@unicc.org>
+
+# Passed as --build-arg during 'docker build'
+ARG KATELLO_HOST
+ARG KATELLO_RPM
+ARG KATELLO_ORG
+ARG KATELLO_USER
+ARG KATELLO_PASS
+ARG BITBUCKET
+ARG REPO
+
+COPY ["./lib/*.sh", "./lib/"]
+COPY ["./tests", "./etc/repo.key", "./"]
+
+RUN chmod 600 /repo.key && \
+    echo "IdentityFile /repo.key" >> /etc/ssh/ssh_config && \
+    echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+
+# Default entrypoint
+ENTRYPOINT ["/puppet_apply.sh"]

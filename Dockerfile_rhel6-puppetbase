@@ -1,0 +1,23 @@
+FROM registry.access.redhat.com/rhel6
+MAINTAINER Ruslan Valiyev <valiyev@unicc.org>
+
+# Passed during the build with --build-arg
+ARG KATELLO_HOST
+ARG KATELLO_RPM
+ARG KATELLO_ORG
+ARG KATELLO_USER
+ARG KATELLO_PASS
+ARG BITBUCKET
+ARG REPO
+
+# Register first to be able to yum install
+COPY ["./lib", "./lib"]
+RUN source ./lib/katello_ops.sh && register $HOSTNAME rhel-6-x86_64
+
+# Install 'puppet', 'tar', 'git' + 'puppetlabs-stdlib'
+RUN yum --nogpg -y install puppet git tar
+RUN puppet module install puppetlabs-stdlib
+RUN yum clean all
+
+# Unscubscribe and remove from Katello when you're done
+RUN source ./lib/katello_ops.sh && unregister $HOSTNAME

@@ -1,0 +1,23 @@
+FROM oraclelinux:5
+MAINTAINER Ruslan Valiyev <valiyev@unicc.org>
+
+# Passed during the build with --build-arg
+ARG KATELLO_HOST
+ARG KATELLO_RPM
+ARG KATELLO_ORG
+ARG KATELLO_USER
+ARG KATELLO_PASS
+ARG BITBUCKET
+ARG REPO
+
+# OEL repos
+ADD https://$KATELLO_HOST/pub/cfg/katello_oel5_client.repo ./etc/yum.repos.d
+ADD https://$KATELLO_HOST/pub/cfg/katello_oel5_epel.repo ./etc/yum.repos.d
+ADD https://$KATELLO_HOST/pub/cfg/katello_oel5_puppet.repo ./etc/yum.repos.d
+
+# Install 'puppet', 'git' + 'puppetlabs-stdlib'
+RUN yum --nogpg -y install git ruby facter hiera ruby-augeas ruby-shadow yum-downloadonly
+RUN yum --nogpg -y install --downloadonly --downloaddir=/tmp libselinux-ruby ; rpm -ivh --nodeps /tmp/libselinux-ruby-*
+RUN yum --nogpg -y install puppet
+RUN puppet module install puppetlabs-stdlib
+RUN yum clean all

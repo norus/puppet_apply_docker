@@ -1,0 +1,20 @@
+FROM oraclelinux:6
+MAINTAINER Ruslan Valiyev <valiyev@unicc.org>
+
+# Passed during the build with --build-arg
+ARG KATELLO_HOST
+ARG KATELLO_RPM
+ARG KATELLO_ORG
+ARG KATELLO_USER
+ARG KATELLO_PASS
+ARG BITBUCKET
+ARG REPO
+
+# OEL repos
+ADD https://$KATELLO_HOST/pub/cfg/katello_oel6_client.repo ./etc/yum.repos.d
+ADD https://$KATELLO_HOST/pub/cfg/katello_oel6_puppet.repo ./etc/yum.repos.d
+
+# Install 'puppet', 'git', 'tar' + 'puppetlabs-stdlib'
+RUN yum --nogpg -y install puppet git tar
+RUN puppet module install puppetlabs-stdlib
+RUN yum clean all

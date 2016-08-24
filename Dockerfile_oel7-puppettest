@@ -1,0 +1,33 @@
+FROM oel7/puppetbase
+
+# Passed as --build-arg during 'docker build'
+ARG KATELLO_HOST
+ARG KATELLO_RPM
+ARG KATELLO_ORG
+ARG KATELLO_USER
+ARG KATELLO_PASS
+ARG BITBUCKET
+ARG REPO
+
+ENV container docker
+
+COPY ["./lib", "./lib"]
+COPY ["./tests", "./etc", "./"]
+
+RUN source /env.vars
+
+RUN chmod 600 /repo.key && \
+    echo "IdentityFile /repo.key" >> /etc/ssh/ssh_config && \
+    echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+rm -f /lib/systemd/system/multi-user.target.wants/*;\
+rm -f /etc/systemd/system/*.wants/*;\
+rm -f /lib/systemd/system/local-fs.target.wants/*; \
+rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+rm -f /lib/systemd/system/basic.target.wants/*;\
+rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+VOLUME [ "/sys/fs/cgroup" ]
+CMD ["/usr/sbin/init"]
